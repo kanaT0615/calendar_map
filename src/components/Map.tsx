@@ -100,7 +100,7 @@ export const Map: React.FC<MapProps> = ({ events, onEventClick, selectedEvent })
       <div className="h-[600px] relative">
         <MapContainer
           ref={mapRef}
-          center={[40.7128, -74.0060]} // Default to NYC
+          center={[35.4437, 139.6380]} // Default to Yokohama, Japan
           zoom={10}
           style={{ height: '100%', width: '100%' }}
           className="z-0"

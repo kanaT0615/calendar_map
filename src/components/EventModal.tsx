@@ -26,8 +26,8 @@ export const EventModal: React.FC<EventModalProps> = ({
     time: '',
     locationName: '',
     locationAddress: '',
-    locationLat: 40.7128,
-    locationLng: -74.0060,
+    locationLat: 35.4437,
+    locationLng: 139.6380,
     category: 'other' as Event['category']
   });
 
