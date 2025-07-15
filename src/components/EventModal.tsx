@@ -76,8 +76,13 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (!formData.locationAddress) return;
     
     try {
+      // Add Japan bias to search for better results in Japan
+      const searchQuery = formData.locationAddress.includes('Japan') 
+        ? formData.locationAddress 
+        : `${formData.locationAddress}, Japan`;
+        
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.locationAddress)}&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1&countrycodes=jp&bounded=1&viewbox=138.0,36.0,141.0,34.0`
       );
       const data = await response.json();
       
@@ -89,10 +94,36 @@ export const EventModal: React.FC<EventModalProps> = ({
           locationLng: parseFloat(location.lon),
           locationName: prev.locationName || location.display_name.split(',')[0]
         }));
+      } else {
+        // If no results found, try without Japan bias
+        const fallbackResponse = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.locationAddress)}&limit=1`
+        );
+        const fallbackData = await fallbackResponse.json();
+        
+        if (fallbackData.length > 0) {
+          const location = fallbackData[0];
+          setFormData(prev => ({
+            ...prev,
+            locationLat: parseFloat(location.lat),
+            locationLng: parseFloat(location.lon),
+            locationName: prev.locationName || location.display_name.split(',')[0]
+          }));
+        }
       }
     } catch (error) {
       console.error('Error searching location:', error);
     }
+  };
+
+  const handleSetYokohamaDefault = () => {
+    setFormData(prev => ({
+      ...prev,
+      locationLat: 35.4437,
+      locationLng: 139.6380,
+      locationAddress: prev.locationAddress || 'Yokohama, Kanagawa, Japan',
+      locationName: prev.locationName || 'Yokohama'
+    }));
   };
 
   if (!isOpen) return null;
@@ -193,22 +224,61 @@ export const EventModal: React.FC<EventModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Address
             </label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                required
-                value={formData.locationAddress}
-                onChange={(e) => setFormData(prev => ({ ...prev, locationAddress: e.target.value }))}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter full address"
-              />
+            <div className="space-y-2">
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  required
+                  value={formData.locationAddress}
+                  onChange={(e) => setFormData(prev => ({ ...prev, locationAddress: e.target.value }))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter full address"
+                />
+                <button
+                  type="button"
+                  onClick={handleLocationSearch}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Find
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={handleLocationSearch}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={handleSetYokohamaDefault}
+                className="w-full px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
               >
-                Find
+                Set to Yokohama, Japan
               </button>
+            </div>
+          </div>
+
+          {/* Coordinates Display */}
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            <div>Coordinates: {formData.locationLat.toFixed(4)}, {formData.locationLng.toFixed(4)}</div>
+          </div>
+
+          {/* Manual Coordinate Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Manual Coordinates (Optional)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={formData.locationLat}
+                onChange={(e) => setFormData(prev => ({ ...prev, locationLat: parseFloat(e.target.value) || 0 }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Latitude"
+              />
+              <input
+                type="number"
+                step="0.0001"
+                value={formData.locationLng}
+                onChange={(e) => setFormData(prev => ({ ...prev, locationLng: parseFloat(e.target.value) || 0 }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Longitude"
+              />
             </div>
           </div>
 
