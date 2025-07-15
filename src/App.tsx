@@ -327,9 +327,6 @@ function App() {
                     <strong>Location:</strong> {selectedEvent.location.name}
                   </div>
                   <div className="text-sm text-gray-600">
-                    <strong>Location:</strong> {selectedEvent.location_name}
-                  </div>
-                  <div className="text-sm text-gray-600">
                     <strong>Address:</strong> {selectedEvent.location_address}
                   </div>
                   <div className="text-sm text-gray-600">
